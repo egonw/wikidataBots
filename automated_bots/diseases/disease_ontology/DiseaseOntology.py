@@ -188,14 +188,14 @@ class  disease(object):
 
 
         refStatedIn = PBB_Core.WDUrl(value=doVersionURL, prop_nr='P1065', is_reference=True)
-        refStatedIn.overwrite_references = True
+        # refStatedIn.overwrite_references = True
         refImported = PBB_Core.WDItemID(value=5282129, prop_nr='P248', is_reference=True)
-        refImported.overwrite_references = True
+        # refImported.overwrite_references = True
         refDoId = PBB_Core.WDString(value=str(self.do_id), prop_nr='P699', is_reference=True)
-        refDoId.overwrite_references = True
+        # refDoId.overwrite_references = True
         timeStringNow = strftime("+%Y-%m-%dT00:00:00Z", gmtime())
         refRetrieved = PBB_Core.WDTime(timeStringNow, prop_nr='P813', is_reference=True)
-        refRetrieved.overwrite_references = True
+        # refRetrieved.overwrite_references = True
         do_reference = [refImported, refDoId, refRetrieved, refStatedIn]
         prep = dict()
         if self.do_id != "DOID:4":
@@ -275,9 +275,9 @@ class  disease(object):
 
         # add exact Matc
         refMiriamStatedIn = PBB_Core.WDItemID(value="Q16335166", prop_nr='P248', is_reference=True)
-        refMiriamStatedIn.overwrite_references = True
+        # refMiriamStatedIn.overwrite_references = True
         refMiriamUrl = PBB_Core.WDUrl(value="http://www.ebi.ac.uk/miriam/main/collections/MIR:00000233", prop_nr='P854', is_reference=True)
-        refMiriamUrl.overwrite_references = True
+        # refMiriamUrl.overwrite_references = True
         miriam_reference = [refMiriamStatedIn, refMiriamUrl]
         prep["P2888"] = [PBB_Core.WDUrl(value="http://purl.obolibrary.org/obo/"+self.do_id.replace(":", "_"), prop_nr='P2888', references=[copy.deepcopy(do_reference)]),
                          PBB_Core.WDUrl(value="http://identifiers.org/doid/"+self.do_id, prop_nr='P2888', references=[copy.deepcopy(miriam_reference)])]
@@ -285,7 +285,7 @@ class  disease(object):
 
 
         refStatedIn = PBB_Core.WDUrl(value="http://www.ebi.ac.uk/miriam/main/collections/MIR:00000233", prop_nr='P854', is_reference=True)
-        refStatedIn.overwrite_references = True
+        # refStatedIn.overwrite_references = True
 
         #io_reference = [refStatedIn]
         #prep["P1709"].append(PBB_Core.WDUrl(value="http://identifiers.org/doid/"+self.do_id, prop_nr='P1709', references=[copy.deepcopy(io_reference)], rank=self.rank))
@@ -296,9 +296,6 @@ class  disease(object):
                 data2add.append(statement)
                 # print(statement.prop_nr, statement.value)
 
-        #if self.wdid is not None:
-        #    wdPage = PBB_Core.WDItemEngine(self.wdid, item_name=self.name, data=data2add, server="www.wikidata.org", domain="diseases",append_value=['P279'])
-        #else:
         wdPage = PBB_Core.WDItemEngine(item_name=self.name, data=data2add, server="www.wikidata.org", domain="diseases", append_value=['P279'])
 
         # wdPage.set_description(description='Human disease', lang='en')
