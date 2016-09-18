@@ -27,7 +27,7 @@ __license__ = 'GPL'
 import time
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/../ProteinBoxBot_Core")
+sys.path.append(os.path.dirname(os.path.abspath(__file__))+"/../../ProteinBoxBot_Core")
 import ProteinBoxBot_Core.PBB_login as PBB_login
 import ProteinBoxBot_Core.PBB_settings as PBB_settings
 import ProteinBoxBot_Core.PBB_Core as PBB_Core

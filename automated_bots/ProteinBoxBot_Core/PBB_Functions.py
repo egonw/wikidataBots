@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 '''
-Author:Andra Waagmeester (andra@waagmeester.net)
+Authors: 
+  Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com
+  Andra Waagmeester (andra' at ' micelio.be)
 
 This file is part of ProteinBoxBot.
 
@@ -20,14 +22,27 @@ You should have received a copy of the GNU General Public License
 along with ProteinBoxBot.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-# Resource specific 
-import DiseaseOntology
-import traceback
+__author__ = 'Sebastian Burgstaller, Andra Waagmeester'
+__license__ = 'GPL'
+
+import PBB_Debug
+import PBB_login
+import PBB_settings
+import requests
+import wd_property_store
+
+try: import simplejson as json
+except ImportError: import json # http://stackoverflow.com/a/712799/155046
+
+def getItemsByProperty(wdproperty):
+    """
+    Gets all WikiData item IDs that contains statements containing property wdproperty
+    """
+    req = requests.get("http://wdq.wmflabs.org/api?q=claim%5B"+wdproperty+"%5D&props="+wdproperty, headers={'user-agent':'proteinBoxBot'})
+
+    return req.json()
+    
 
 
-try:
-    print("Getting the Disease Ontology")
-    do = DiseaseOntology.diseaseOntology()
-
-except Exception as err:
-    print(traceback.format_exc())
+    
+    

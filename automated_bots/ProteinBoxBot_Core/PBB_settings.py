@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 '''
-Author:Andra Waagmeester (andra@waagmeester.net)
+Authors: 
+  Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com
+  Andra Waagmeester (andra' at ' micelio.be)
 
 This file is part of ProteinBoxBot.
 
@@ -20,14 +22,25 @@ You should have received a copy of the GNU General Public License
 along with ProteinBoxBot.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-# Resource specific 
-import DiseaseOntology
-import traceback
+# from raven import Client
 
+def getSentryKey():
+    return '<Sentry key to be obtained from https://getsentry.com/welcome/>'
+    
+def getWikiDataUser():
+    return 'ProteinBoxBot'
+    
+def getWikiDataPassword():
+    return ''
+    
+def getMySQLHost():
+    return '127.0.0.1'
+    
+def getMySQLUser():
+    return 'PBB'
 
-try:
-    print("Getting the Disease Ontology")
-    do = DiseaseOntology.diseaseOntology()
+def getMySQLPW():
+    return ''
+    
 
-except Exception as err:
-    print(traceback.format_exc())
+    

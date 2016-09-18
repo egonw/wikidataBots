@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 '''
-Author:Andra Waagmeester (andra@waagmeester.net)
+Authors: 
+  Sebastian Burgstaller (sebastian.burgstaller' at 'gmail.com
+  Andra Waagmeester (andra' at ' micelio.be)
 
 This file is part of ProteinBoxBot.
 
@@ -20,14 +22,14 @@ You should have received a copy of the GNU General Public License
 along with ProteinBoxBot.  If not, see <http://www.gnu.org/licenses/>.
 '''
 
-# Resource specific 
-import DiseaseOntology
-import traceback
+import pprint
 
 
-try:
-    print("Getting the Disease Ontology")
-    do = DiseaseOntology.diseaseOntology()
-
-except Exception as err:
-    print(traceback.format_exc())
+def prettyPrint(variable):
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(variable)
+	
+def getSentryClient():
+    # return Client(settings.getSentryKey())
+	return "http://fe8543035e154f6591e0b578faeddb07:dba0f35cfa0a4e24880557c4ba99c7c0@sentry.sulab.org/9"
+	
