@@ -55,6 +55,8 @@ class diseaseOntology():
 
 
         self.logincreds = PBB_login.WDLogin(PBB_settings.getWikiDataUser(), os.environ['wikidataApi'])
+        fast_run_base_filter = {'P699': ''}
+        fast_run = True
 
         # Get all WikiData entries that contain a WikiData ID
         print("Getting all terms with a Disease Ontology ID in WikiData")
@@ -105,6 +107,8 @@ class diseaseOntology():
             disVars.append(self.logincreds)
             disVars.append(self.start)
             disVars.append(res[0].text)
+            disVars.append(fast_run)
+            disVars.append(fast_run_base_filter)
 
             
             diseaseClass = disease(disVars)          
@@ -151,6 +155,8 @@ class  disease(object):
         
         self.wd_do_content = doClass
         self.do_id = object[5]
+        self.fast_run = object[6]
+        self.fast_run_base_filter = object[7]
 
         self.name = self.getDoValue(self.wd_do_content, './/rdfs:label')[0].text
         classDescription = self.getDoValue(self.wd_do_content, './/oboInOwl:hasDefinition/oboInOwl:Definition/rdfs:label')
@@ -296,7 +302,7 @@ class  disease(object):
                 data2add.append(statement)
                 # print(statement.prop_nr, statement.value)
 
-        wdPage = PBB_Core.WDItemEngine(item_name=self.name, data=data2add, server="www.wikidata.org", domain="diseases", append_value=['P279'])
+        wdPage = PBB_Core.WDItemEngine(item_name=self.name, data=data2add, server="www.wikidata.org", domain="diseases", append_value=['P279'], fast_run=self.fast_run, fast_run_base_filter=self.fast_run_base_filter)
 
         # wdPage.set_description(description='Human disease', lang='en')
         if wikilink is not None:
