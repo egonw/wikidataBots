@@ -13,6 +13,22 @@ This folder groups different bots according to their main topic, being genes, pr
 To allow for testing if new features or improvements on ProteinBoxBot_Core does not intervere with the automated bot cycles run in jenkins, a separate copy of the ProteinBoxBot_Core is kept 
 in the automated_bots folder. Bots added to this folder should use this copy of ProteinBoxBot_Core and not the development version.
 
+### Step 3: Enable logs
+ProteinBoxBot comes with a log call. The following template can be used to enable logging:
+
+```
+try:
+  # bot code processing a wikidata item. 
+except Exception as e:
+	PBB_Core.WDItemEngine.log('ERROR', '{main_data_id}, "{exception_type}", "{message}", {wd_id}, {duration}'.format(
+                        main_data_id=diseaseClass.do_id,
+                        exception_type=type(e),
+                        message=e.__str__(),
+                        wd_id='-',
+                        duration=time.time() - self.start
+                    ))
+```
+
 ### Step 4: Enable storing of the password of wikidata as an environment variable.
 Each time a bot is run a copy of that bot is pulled from bitbucket. This means that passwords are not stored locally as part of config file or other internal settings mechanism, or as a command line variable.  In the current jenkins workflows, passwords are submitted as environment variable. The following python snippet can be used to get the environemnt variable:
 ```
