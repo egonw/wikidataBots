@@ -15,21 +15,21 @@ in the automated_bots folder. Bots added to this folder should use this copy of 
 
 ### Step 4: Enable storing of the password of wikidata as an environment variable.
 Each time a bot is run a copy of that bot is pulled from bitbucket. This means that passwords are not stored locally as part of config file or other internal settings mechanism, or as a command line variable.  In the current jenkins workflows, passwords are submitted as environment variable. The following python snippet can be used to get the environemnt variable:
-'''
+```
 import os
 login = PBB_login.WDLogin("username", os.environ['wikidataApi'])
-'''
+```
 
 ### Step 5: Create a README.md file with contact details and update frequence
 The readme file should at least have the following details:
-'''
+```
 # Bot details
 ** source: ** Name of the original source (e.g. Disease ontology)
 ** accesspoint: ** Access point where the authoritative content is comming from (e.g. http://purl.obolibrary.org/obo/doid.owl)
 ** update frequency: ** How often should the bot run (e.g. Every two weeks)
 ** curator:** Who to contact on content issues?
 ** bot-operator:** Who to contact on bot issues?
-''' 
+``` 
 
 ### Step 6: request launch
 Send a note to me (Andra Waagmeester) that a new bot task is ready to run on jenkins in automatic mode. 
