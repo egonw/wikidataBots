@@ -67,6 +67,8 @@ class genome(object):
         self.gene_count = self.content["total"]
         self.genes = self.content["hits"]
         self.logincreds = PBB_login.WDLogin(PBB_settings.getWikiDataUser(), os.environ['wikidataApi'])
+        fast_run_base_filter = {'P351': '', 'P703': 'Q5'}
+        fast_run = True
         entrezWikidataIds = dict()
         uniprotwikidataids = dict()
 
@@ -106,6 +108,9 @@ class genome(object):
                 gene["genomeInfo"] = self.genomeInfo
                 gene["speciesInfo"] = self.speciesInfo
                 gene["start"] = self.start
+                gene["fast_run"] = fast_run
+                gene["fast_run_filter"] = fast_run_base_filter
+
                 geneClass = mammal_gene(gene)
                 if str(geneClass.entrezgene) in entrezWikidataIds.keys():
                     geneClass.wdid = 'Q' + str(entrezWikidataIds[str(geneClass.entrezgene)])
@@ -147,6 +152,8 @@ class mammal_gene(object):
         self.content = object
         self.name = gene_annotations["name"]
         self.logincreds = object["logincreds"]
+        self.fast_run = object["fast_run"]
+        self.fast_run_filter = object["fast_run_filter"]
 
 
         if "_timestamp" in gene_annotations.keys():
@@ -474,7 +481,7 @@ class mammal_gene(object):
         if self.wdid != None:
           # if self.encodes != None:
             wdPage = PBB_Core.WDItemEngine(self.wdid, data=data2add, server="www.wikidata.org",
-                                           domain="genes")
+                                           domain="genes", fast_run=self.fast_run, fast_run_base_filter=self.fast_run_filter)
 
             wdPage.set_label(self.symbol, lang='en')
             wdPage.set_label(self.symbol, lang='nl')
@@ -513,7 +520,7 @@ class mammal_gene(object):
 
         else:
             wdPage = PBB_Core.WDItemEngine(item_name=self.name, data=data2add, server="www.wikidata.org",
-                                           domain="genes")
+                                           domain="genes", fast_run=self.fast_run, fast_run_base_filter=self.fast_run_filter)
             wdPage.set_label(self.symbol, lang='en')
             wdPage.set_label(self.symbol, lang='nl')
             wdPage.set_label(self.symbol, lang='fr')
