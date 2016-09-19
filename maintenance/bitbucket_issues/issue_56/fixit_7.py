@@ -28,19 +28,19 @@ PREFIX v: <http://www.wikidata.org/prop/statement/>
 SELECT ?gene ?uniprot ?protein_aff ?total WHERE {
   {
   SELECT distinct ?uniprot (count(?uniprot) as ?total) WHERE {
-    ?gene wdt:P703 wd:Q5 ;
+    ?gene wdt:P703 wd:Q15978631 ;
           wdt:P279 wd:Q7187 ;
           wdt:P688 ?protein .
     ?protein wdt:P352 ?uniprot ;
              wdt:P279 wd:Q8054 ;
-             wdt:P703 wd:Q5 .
+             wdt:P703 wd:Q15978631 .
     }
     Group BY ?uniprot
   }
 
   ?protein_aff wdt:P352 ?uniprot .
   ?gene wdt:P688 ?protein_aff ;
-        wdt:P703 wd:Q5 .
+        wdt:P703 wd:Q15978631 .
 
   FILTER (?total > 1)
  }

@@ -169,7 +169,7 @@ def main():
     missing_go_query = '''
         SELECT distinct ?protein ?label WHERE {
           ?protein wdt:P279 wd:Q8054 .
-          ?protein wdt:P703 wd:Q5 .
+          ?protein wdt:P703 wd:Q15978631 .
           OPTIONAL {
               ?protein rdfs:label ?label filter (lang(?label) = "en") .
               #?article schema:about ?protein .

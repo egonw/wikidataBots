@@ -13,7 +13,7 @@ def get_entrez_qid_map(prop_nr):
     query = '''
         SELECT * WHERE {{
             ?qid wdt:{} ?id .
-            ?qid wdt:P703 wd:Q5 .
+            ?qid wdt:P703 wd:Q15978631 .
         }}
         '''.format(prop_nr)
 

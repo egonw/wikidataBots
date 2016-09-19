@@ -67,7 +67,7 @@ class genome(object):
         self.gene_count = self.content["total"]
         self.genes = self.content["hits"]
         self.logincreds = PBB_login.WDLogin(PBB_settings.getWikiDataUser(), os.environ['wikidataApi'])
-        fast_run_base_filter = {'P351': '', 'P703': 'Q5'}
+        fast_run_base_filter = {'P351': '', 'P703': 'Q15978631'}
         fast_run = True
         entrezWikidataIds = dict()
         uniprotwikidataids = dict()

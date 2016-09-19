@@ -47,7 +47,7 @@ class WDHelper:
         :param prop: wikidata property
         :return:
 
-        id_mapper("P352",(("P703", "Q5"),)) # get all uniprot to wdid, where taxon is human
+        id_mapper("P352",(("P703", "Q15978631"),)) # get all uniprot to wdid, where taxon is human
 
         """
         query =  self.wdt + "\n" + self.wd + "\nSELECT * WHERE {"

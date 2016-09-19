@@ -43,13 +43,13 @@ speciesInfo["10090"] = dict()
 speciesInfo["rat"] = dict()
 
 speciesInfo["human"]["taxid"] = "9606"
-speciesInfo["human"]["wdid"] = "Q5"
+speciesInfo["human"]["wdid"] = "Q15978631"
 speciesInfo["human"]["name"] = "human"
 speciesInfo["human"]["release"] = "Q20950174"
 speciesInfo["human"]["genome_assembly"] = "Q20966585"
 speciesInfo["human"]["genome_assembly_previous"] = "Q21067546"
 speciesInfo["9606"]["taxid"] = "9606"
-speciesInfo["9606"]["wdid"] = "Q5"
+speciesInfo["9606"]["wdid"] = "Q15978631"
 speciesInfo["9606"]["name"] = "human"
 speciesInfo["9606"]["release"] = "Q20950174"
 speciesInfo["9606"]["genome_assembly"] = "Q20966585"

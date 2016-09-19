@@ -65,7 +65,7 @@ def wiki_title(entrez_id):
     article_query = """
         SELECT ?article WHERE {
         ?cid wdt:P351 '""" + str(entrez_id) + """'.
-        ?cid wdt:P703 wd:Q5 .
+        ?cid wdt:P703 wd:Q15978631 .
         OPTIONAL { ?cid rdfs:label ?label filter (lang(?label) = "en") .}
         ?article schema:about ?cid .
         ?article schema:inLanguage "en" .

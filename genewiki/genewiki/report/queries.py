@@ -43,7 +43,7 @@ def get_genes():
     SELECT (COUNT(DISTINCT ?ncbigeneId) AS ?count) WHERE {
     ?gene wdt:P279 wd:Q7187 .
     ?gene p:P351 ?ncbigeneId .
-    ?gene wdt:P703 wd:Q5 .
+    ?gene wdt:P703 wd:Q15978631 .
     ?ncbigeneId prov:wasDerivedFrom ?derivedFrom .
     ?derivedFrom reference:P143 wd:Q20641742 .
     }
@@ -71,7 +71,7 @@ def get_proteins():
     SELECT (COUNT(?ncbigeneId) AS ?count) WHERE {
     ?gene wdt:P279 wd:Q7187 .
     ?gene p:P351 ?ncbigeneId .
-    ?gene wdt:P703 wd:Q5 .
+    ?gene wdt:P703 wd:Q15978631 .
     ?gene ?p ?o .
     ?o prov:wasDerivedFrom ?derivedFrom .
     ?derivedFrom reference:P143 wd:Q20641742 .

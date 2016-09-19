@@ -8,7 +8,7 @@ reference2entrezGene = 'Q1345229'
 reference2ensembl = 'Q1344256'
 
 ## species 
-humanSpeciesPage = 'Q5'
+humanSpeciesPage = 'Q15978631'
 mouseSpeciesPage = 'Q83310'
 genePage = 'Q7187'
 
