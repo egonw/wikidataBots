@@ -37,7 +37,7 @@ def create_stub(gene_id):
 
     try:
         from genewiki.bio.mygeneinfo import get_response
-        root, meta, homolog, entrez, uniprot = get_response(gene_id)
+        root, entrez, uniprot = get_response(gene_id)
     except Exception as e:
         print(e)
         return None
@@ -70,7 +70,9 @@ def create_stub(gene_id):
     generif = mg.getgene(gene_id, fields="generif")
     pmids = []
     if 'generif' in generif:
-        pmids = str(generif['generif'][0]['pubmed']).split(",")
+        no_pmids = len(generif['generif'])
+        for i in range(0, no_pmids-1):
+            pmids.append(str(generif['generif'][i]['pubmed']))
 
     limit = 9 if len(pmids) > 9 else len(pmids)
     citations = ''
@@ -100,7 +102,7 @@ def create(entrez, force=False):
 
     try:
         from genewiki.bio.mygeneinfo import get_response
-        root, meta, homolog, entrez, uniprot = get_response(entrez)
+        root, entrez, uniprot = get_response(entrez)
     except ValueError:
         # invalid entrez
         return None

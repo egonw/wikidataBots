@@ -70,12 +70,11 @@ def get_response(entrez):
     mg = mygene.MyGeneInfo()
     try:
         root = mg.getgene(entrez, 'name,summary,entrezgene,uniprot,pdb,HGNC,symbol,alias,MIM,ec,homologene,ensembl,refseq,genomic_pos,go', species='human')
-        meta = mg.metadata
-        homolog = get_homolog(root)
-        homolog = mg.getgene(homolog, 'name,summary,entrezgene,uniprot,pdb,HGNC,symbol,alias,MIM,ec,homologene,ensembl,refseq,genomic_pos,go') if homolog else None
+        # homolog = get_homolog(root)
+        # homolog = mg.getgene(homolog, 'name,summary,entrezgene,uniprot,pdb,HGNC,symbol,alias,MIM,ec,homologene,ensembl,refseq,genomic_pos,go') if homolog else None
         entrez = root.get('entrezgene')
         uniprot = findReviewedUniprotEntry(root.get('uniprot'), entrez)
-        return root, meta, homolog, entrez, uniprot
+        return root, entrez, uniprot
     except Exception as e:
         client.captureException()
         return e
