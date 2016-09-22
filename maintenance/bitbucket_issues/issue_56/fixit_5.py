@@ -33,13 +33,13 @@ SELECT DISTINCT ?protein ?protein2 {
          wdt:P680 ?mf ;
          wdt:P681 ?cc ;
          wdt:P682 ?bp ;
-         wdt:P703 wd:Q5 .
+         wdt:P703 wd:Q15978631 .
 ?protein2 wdt:P279 wd:Q8054 ;
          wdt:P352 ?uniprot ;
          wdt:P680 ?mf ;
          wdt:P681 ?cc ;
          wdt:P682 ?bp ;
-          wdt:P703 wd:Q5 .
+          wdt:P703 wd:Q15978631 .
 FILTER (?protein != ?protein2)
                    }
 """)

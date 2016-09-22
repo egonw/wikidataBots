@@ -23,7 +23,7 @@ PREFIX p: <http://www.wikidata.org/prop/>
 PREFIX v: <http://www.wikidata.org/prop/statement/>
 
 SELECT distinct ?protein WHERE {
-  ?protein wdt:P703 wd:Q5 .
+  ?protein wdt:P703 wd:Q15978631 .
   ?protein wdt:P705 ?ensembl .
   FILTER(REGEX(?ensembl, "^ENSMUSP", "i"))
 

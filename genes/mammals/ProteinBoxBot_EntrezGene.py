@@ -47,7 +47,7 @@ try:
     speciesInfo["10116"] = dict()
     
     speciesInfo["human"]["taxid"] = "9606"
-    speciesInfo["human"]["wdid"] = "Q5"
+    speciesInfo["human"]["wdid"] = "Q15978631"
     speciesInfo["human"]["name"] = "human"
     speciesInfo["human"]["de-name"] = "Humanes"
     speciesInfo["human"]["fr-name"] = "Humaine"
@@ -57,7 +57,7 @@ try:
     speciesInfo["human"]["genome_assembly_previous"] = "Q21067546"
 
     speciesInfo["9606"]["taxid"] = "9606"
-    speciesInfo["9606"]["wdid"] = "Q5"
+    speciesInfo["9606"]["wdid"] = "Q15978631"
     speciesInfo["9606"]["name"] = "human"
     speciesInfo["9606"]["de-name"] = "Humanes"
     speciesInfo["9606"]["fr-name"] = "Humaine"

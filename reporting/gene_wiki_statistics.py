@@ -28,7 +28,7 @@ def main():
     query = '''
     SELECT ?entrez_id ?cid ?article ?label WHERE {
         ?cid wdt:P351 ?entrez_id .
-        ?cid wdt:P703 wd:Q5 .
+        ?cid wdt:P703 wd:Q15978631 .
         OPTIONAL {
             ?cid rdfs:label ?label filter (lang(?label) = "en") .
         }

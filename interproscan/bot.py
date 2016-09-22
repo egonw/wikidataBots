@@ -271,7 +271,7 @@ def create_protein_ipr(uniprot_id, uniprot_wdid, families, has_part, release_inf
 
 
 def create_all_protein_interpro_human(resume=None):
-    return create_all_protein_interpro("Q5", resume=resume)
+    return create_all_protein_interpro("Q15978631", resume=resume)
 
 
 def create_all_protein_interpro(taxon_wdid=None, resume=False):
@@ -366,7 +366,7 @@ def get_done_prot():
     Return the uniprot IDs """
     endpoint = SPARQLWrapper("https://query.wikidata.org/bigdata/namespace/wdq/sparql")
     if False:
-        # ?item wdt:P703 wd:Q5 .
+        # ?item wdt:P703 wd:Q15978631 .
         query = """
             PREFIX wdt: <http://www.wikidata.org/prop/direct/>
             PREFIX wd: <http://www.wikidata.org/entity/>

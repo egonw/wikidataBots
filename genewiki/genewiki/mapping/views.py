@@ -19,7 +19,11 @@ def wiki_mapping(request, entrez_id):
     article_query = """
         SELECT ?article WHERE {
         ?cid wdt:P351 '"""+str(entrez_id)+"""'.
+<<<<<<< HEAD
         ?cid wdt:P703 wd:Q15978631 . 
+=======
+        ?cid wdt:P703 wd:Q15978631 .
+>>>>>>> 3c750e99c591b1eb3e75a7603b5875a911bc1567
         OPTIONAL { ?cid rdfs:label ?label filter (lang(?label) = "en") .}
         ?article schema:about ?cid .
         ?article schema:inLanguage "en" .

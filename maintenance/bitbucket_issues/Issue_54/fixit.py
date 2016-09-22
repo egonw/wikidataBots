@@ -25,7 +25,7 @@ PREFIX v: <http://www.wikidata.org/prop/statement/>
 SELECT distinct ?gene ?protein WHERE {
     ?gene wdt:P703 wd:Q83310 ;
           wdt:P688 ?protein .
-    ?protein wdt:P703 wd:Q5 .
+    ?protein wdt:P703 wd:Q15978631 .
 }
 """)
 sparql.setReturnFormat(JSON)

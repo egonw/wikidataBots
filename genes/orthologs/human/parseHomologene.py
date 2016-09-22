@@ -52,11 +52,11 @@ class orthologClass(object):
         homologene_reference =  [[refStatedInHomologeneBuild, refImportedFromHomologen, refRetrieved]]
         
         # Prepare qualifiers
-        humanQualifier = PBB_Core.WDItemID(value='Q5', prop_nr='P703', is_qualifier=True)
+        humanQualifier = PBB_Core.WDItemID(value='Q15978631', prop_nr='P703', is_qualifier=True)
         mouseQualifier = PBB_Core.WDItemID(value='Q83310', prop_nr='P703', is_qualifier=True)    
 
         # Prepare the items to add
-        if self.species == "Q5":
+        if self.species == "Q15978631":
             orthologValue = PBB_Core.WDItemID(value=self.ortholog, prop_nr='P684', references=homologene_reference, qualifiers=[humanQualifier])
         elif self.species == "Q83310":
             orthologValue = PBB_Core.WDItemID(value=self.ortholog, prop_nr='P684', references=homologene_reference, qualifiers=[mouseQualifier])
@@ -106,7 +106,7 @@ for ortholog in humanOrthologs.keys():
             humanOrtholog["logincreds"] = logincreds
             mouseOrtholog["logincreds"] = logincreds
             humanOrtholog["ortholog"] = "Q"+str(humanEntrezWikidataIds[humanOrthologs[ortholog]])
-            humanOrtholog["speciesWdID"] = "Q5"
+            humanOrtholog["speciesWdID"] = "Q15978631"
             humanOrtholog["source"] = "Q"+str(mouseEntrezWikidataIds[mouseOrthologs[ortholog]])
             HumanOrthoLogClass = orthologClass(humanOrtholog)
             mouseOrtholog["ortholog"] = "Q"+str(mouseEntrezWikidataIds[mouseOrthologs[ortholog]])

@@ -1,6 +1,3 @@
-#!usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import time
 import datetime
 import itertools
@@ -38,10 +35,11 @@ along with ProteinBoxBot.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 __author__ = 'Sebastian Burgstaller, Andra Waagmeester'
-__license__ = 'GPL'
+__license__ = 'AGPLv3'
 
 
 class WDItemList(object):
+    """DEPRECATED"""
     def __init__(self, wdquery, wdprop=""):
         self.wdquery = wdquery
         self.wditems = self.getItemsByProperty(wdquery, wdprop)
@@ -65,21 +63,62 @@ class WDItemList(object):
 
 class WDItemEngine(object):
 
+    databases = {}
+    pmids = []
+
     log_file_name = ''
     fast_run_store = []
 
     def __init__(self, wd_item_id='', item_name='', domain='', data=None, server='www.wikidata.org',
-                 append_value=None, use_sparql=True, fast_run=False, fast_run_base_filter=None):
+                 append_value=None, use_sparql=True, fast_run=False, fast_run_base_filter=None,
+                 global_ref_mode='KEEP_GOOD', good_refs=None, keep_good_ref_statements=False, search_only=False):
         """
         constructor
         :param wd_item_id: Wikidata item id
         :param item_name: Label of the wikidata item
-        :param domain: The data domain the class should operate in. If None and item_name not '', create new item from scratch.
+        :param domain: The data domain the class should operate in. If None and item_name not '', create new item
+            from scratch.
         :type domain: str or None
         :param data: a dictionary with WD property strings as keys and the data which should be written to
-        a WD item as the property values
+            a WD item as the property values
         :param append_value: a list of properties where potential existing values should not be overwritten by the data
-        passed in the :parameter data.
+            passed in the :parameter data.
+        :type append_value: list of property number strings
+        :param use_sparql: OBSOLETE
+        :type use_sparql: bool
+        :param fast_run: True if this item should be run in fastrun mode, otherwise False. User setting this to True
+            should also specify the fast_run_base_filter for these item types
+        :type fast_run: bool
+        :param fast_run_base_filter: A property value dict determining the Wikidata property and the corresonding value
+            which should be used as a filter for this item type. Several filter criteria can be specified. The values
+            can be either Wikidata item QIDs, strings or empty strings if the value should be a variable in SPARQL.
+            Example: {'P352': '', 'P703': 'Q15978631'} if the base comman type of things this bot runs on is
+            human proteins (specified by Uniprot IDs (P352) and 'found in taxon' homo sapiens 'Q15978631').
+        :type fast_run_base_filter: dict
+        :param global_ref_mode: sets the reference handling mode for an item. Four modes are possible, 'STRICT_KEEP'
+            keeps all references as they are, 'STRICT_KEEP_APPEND' keeps the references as they are and appends and
+            appends new ones. 'STRICT_OVERWRITE' overwrites all existing references for given.
+        :type ref_mode: str of value 'STRICT_KEEP', 'STRICT_KEEP_APPEND', 'STRICT_OVERWRITE', 'KEEP_GOOD'
+        :param good_refs: This parameter lets the user define blocks of good references. It is a list of dictionaries.
+            One block is a dictionary with  Wikidata properties as keys and potential values as the required value for
+            a property. There can be arbitrarily many key: value pairs in one reference block.
+            Example: [{'P248': 'Q905695', 'P352': None, 'P407': None, 'P1476': None, 'P813': None}]
+            This example contains one good reference block, stated in: Uniprot, Uniprot ID, title of Uniprot entry,
+            language of work and date when the information has been retrieved. A None type indicates that the value
+            varies from reference to reference. In this case, only the value for the Wikidata item for the
+            Uniprot database stays stable over all of these references. Key value pairs work here, as Wikidata
+            references can hold only one value for one property. The number of good reference blocks is not limited.
+            This parameter OVERRIDES any other refernce mode set!!
+        :type good_refs: list containing dictionaries.
+        :param keep_good_ref_statements: Do not delete any statement which has a good reference, either definded in the
+            good_refs list or by any other referencing mode.
+        :type keep_good_ref_statements: bool
+        :param search_only: If this flag is set to True, the data provided will only be used to search for the
+            corresponding Wikidata item, but no actual data updates will performed. This is useful, if certain states or
+            values on the target item need to be checked before certain data is written to it. In order to write new
+            data to the item, the method update() will take data, modify the Wikidata item and a write() call will
+            then perform the actual write to Wikidata.
+        :type search_only: bool
         """
         self.wd_json_representation = {}
         self.wd_item_id = wd_item_id
@@ -89,12 +128,23 @@ class WDItemEngine(object):
         self.server = server
         self.use_sparql = use_sparql
         self.statements = []
+        self.original_statments = []
         self.entity_metadata = {}
 
         self.fast_run = fast_run
         self.fast_run_base_filter = fast_run_base_filter
         self.fast_run_container = None
         self.require_write = True
+
+        self.global_ref_mode = global_ref_mode
+        self.good_refs = good_refs
+
+        self.keep_good_ref_statements = keep_good_ref_statements
+
+        self.search_only = search_only
+
+        if len(WDItemEngine.databases) == 0 or len(WDItemEngine.pmids) == 0:
+            WDItemEngine._init_ref_system()
 
         if data is None:
             self.data = []
@@ -107,24 +157,12 @@ class WDItemEngine(object):
             self.append_value = append_value
 
         if self.fast_run:
-            for c in self.fast_run_store:
-                if c.base_filter == self.fast_run_base_filter:
-                    self.fast_run_container = c
-
-            if not self.fast_run_container:
-                self.fast_run_container = PBB_fastrun.FastRunContainer(base_filter=self.fast_run_base_filter)
-
-            self.require_write = self.fast_run_container.check_data(self.data, append_props=self.append_value)
-            self.fast_run_store.append(self.fast_run_container)
-
-            # set item id based on fast run data
-            if not self.require_write and not self.wd_item_id:
-                self.wd_item_id = self.fast_run_container.current_qid
+            self.init_fastrun()
 
         if self.require_write and self.fast_run:
-            print('fastrun failed')
+            print('fastrun skipped, because no full data match, updating item...')
         elif not self.require_write and self.fast_run:
-            print('successful fastrun')
+            print('successful fastrun, no write to Wikidata required')
 
         if self.item_name and self.domain is None and len(self.data) > 0:
             self.create_new_item = True
@@ -154,7 +192,25 @@ class WDItemEngine(object):
                 self.wd_json_representation = self.get_wd_entity()
                 self.__check_integrity()
 
-        self.__construct_claim_json()
+        if not self.search_only:
+            self.__construct_claim_json()
+        else:
+            self.data = []
+
+    def init_fastrun(self):
+        for c in self.fast_run_store:
+            if c.base_filter == self.fast_run_base_filter:
+                self.fast_run_container = c
+
+        if not self.fast_run_container:
+            self.fast_run_container = PBB_fastrun.FastRunContainer(base_filter=self.fast_run_base_filter)
+
+        self.require_write = self.fast_run_container.check_data(self.data, append_props=self.append_value)
+        self.fast_run_store.append(self.fast_run_container)
+
+        # set item id based on fast run data
+        if not self.require_write and not self.wd_item_id:
+            self.wd_item_id = self.fast_run_container.current_qid
 
     def get_wd_entity(self):
         """
@@ -197,6 +253,7 @@ class WDItemEngine(object):
                 self.statements.append(statement)
 
         self.wd_json_representation = wd_data
+        self.original_statments = copy.deepcopy(self.statements)
 
         return wd_data
 
@@ -326,57 +383,93 @@ class WDItemEngine(object):
             if not new_item.check_qualifier_equality:
                 old_item.set_qualifiers(new_item.get_qualifiers())
 
+        def is_good_ref(ref_block):
+            prop_nrs = [x.get_prop_nr() for x in ref_block]
+            values = [x.get_value() for x in ref_block]
+            good_ref = True
+            prop_value_map = dict(zip(prop_nrs, values))
+
+            # if self.good_refs has content, use these to determine good references
+            if self.good_refs and len(self.good_refs) > 0:
+                found_good = True
+                for rblock in self.good_refs:
+
+                    if not all([k in prop_value_map for k, v in rblock.items()]):
+                        found_good = False
+
+                    if not all([v in prop_value_map[k] for k, v in rblock.items() if v]):
+                        found_good = False
+
+                    if found_good:
+                        return True
+
+                return False
+
+            # stated in, title, retrieved
+            ref_properties = ['P248', 'P1476', 'P813']  # 'P407' language of work,
+
+            for v in values:
+                if prop_nrs[values.index(v)] == 'P248' and v in WDItemEngine.pmids:
+                    return True
+                elif v == 'P698':
+                    return True
+
+            for p in ref_properties:
+                if p not in prop_nrs:
+                    return False
+
+            for ref in ref_block:
+                pn = ref.get_prop_nr()
+                value = ref.get_value()
+
+                if pn == 'P248' and value not in WDItemEngine.databases and 'P854' not in prop_nrs:
+                    return False
+                elif pn == 'P248' and value in WDItemEngine.databases:
+                    db_props = WDItemEngine.databases[value]
+                    if not any([False if x not in prop_nrs else True for x in db_props]) and 'P854' not in prop_nrs:
+                        return False
+
+            return good_ref
+
         def handle_references(old_item, new_item):
             """
-            Local function to handle updating of references. Has the following behavior: If overwrite_references in
-            a provided data type is set to TRUE or an existing item does not have references, just overwrite existing
-            refs. Else: Check if P248 exists and do not overwrite those refs. Only overwrite, if value of P248 and
-            value of the DB entry match. Overwrite all other refs without P248.
+            Local function to handle references
             :param old_item: An item containing the data as currently in WD
             :type old_item: A child of WDBaseDataType
             :param new_item: An item containing the new data which should be written to WD
             :type new_item: A child of WDBaseDataType
             """
+            # stated in, title, language of work, retrieved, imported from
             ref_properties = ['P248', 'P1476', 'P407', 'P813', 'P143']
-            new_references = copy.deepcopy(new_item.get_references())
-            existing_references = copy.deepcopy(old_item.get_references())
+            new_references = new_item.get_references()
+            old_references = old_item.get_references()
 
             if any([z.overwrite_references for y in new_references for z in y]) \
-                    or sum(map(lambda z: len(z), existing_references)) == 0:
-                old_item.set_references(new_item.get_references())
+                    or sum(map(lambda z: len(z), old_references)) == 0 \
+                    or self.global_ref_mode == 'STRICT_OVERWRITE':
+                old_item.set_references(new_references)
+            elif self.global_ref_mode == 'STRICT_KEEP' or new_item.statement_ref_mode == 'STRICT_KEEP':
+                pass
+            elif self.global_ref_mode == 'STRICT_KEEP_APPEND' or new_item.statement_ref_mode == 'STRICT_KEEP_APPEND':
+                old_item.set_references(old_references.extend(new_references))
 
-            elif 'P248' in [z.get_prop_nr() for y in new_references for z in y]:
-                for count, ref_block in enumerate(old_item.get_references()):
-                    for new_ref_block in copy.copy(new_references):
-                        db_value_prop = ''
-                        match_dict = {}
-                        for ref in ref_block:
-                            for new_ref in new_ref_block:
-                                if ref == new_ref:
-                                    cur_prop = new_ref.get_prop_nr()
-                                    match_dict.update({cur_prop: True})
-                                    if cur_prop in wd_property_store.wd_properties and cur_prop not in ref_properties:
-                                        db_value_prop = cur_prop
+            elif self.global_ref_mode == 'KEEP_GOOD' or new_item.statement_ref_mode == 'KEEP_GOOD':
+                keep_block = [False for x in old_references]
+                for count, ref_block in enumerate(old_references):
+                    stated_in_value = [x.get_value() for x in ref_block if x.get_prop_nr() == 'P248']
+                    if is_good_ref(ref_block):
+                        keep_block[count] = True
 
-                        if db_value_prop in match_dict or 'P143' in match_dict:
-                            existing_references[count] = new_ref_block
-                            new_references.remove(new_ref_block)
+                    new_ref_si_values = [x.get_value() if x.get_prop_nr() == 'P248' else None
+                                         for z in new_references for x in z]
 
-                # remove all references without 'stated in'
-                drop_refs = []
-                for ref in existing_references:
-                    prop_nr_list = [z.get_prop_nr() for z in ref]
+                    for si in stated_in_value:
+                        if si in new_ref_si_values:
+                            keep_block[count] = False
 
-                    if 'P248' not in prop_nr_list:
-                        drop_refs.append(ref)
-
-                while len(drop_refs) > 0:
-                    existing_references.remove(drop_refs.pop())
-
-                if len(new_references) > 0:
-                    for uu in new_references:
-                        existing_references.append(uu)
-                old_item.set_references(existing_references)
+                refs = [x for c, x in enumerate(old_references) if keep_block[c]]
+                refs.extend(new_references)
+                old_item.set_references(refs)
 
         # sort the incoming data according to the WD property number
         self.data.sort(key=lambda z: z.get_prop_nr().lower())
@@ -417,7 +510,12 @@ class WDItemEngine(object):
                     if hasattr(stat, 'remove'):
                         break
                     elif x.get_id() and not hasattr(x, 'retain'):
-                        setattr(x, 'remove', '')
+                        # keep statements with good references if keep_good_ref_statements is True
+                        if self.keep_good_ref_statements:
+                            if any([is_good_ref(r) for r in x.get_references()]):
+                                setattr(x, 'retain', '')
+                        else:
+                            setattr(x, 'remove', '')
 
                 match = []
                 for i in prop_data:
@@ -456,8 +554,39 @@ class WDItemEngine(object):
                 self.wd_json_representation['claims'][prop_nr] = []
             self.wd_json_representation['claims'][prop_nr].append(stat.get_json_representation())
 
-    def update(self, data):
-        pass
+    def update(self, data, append_value=None):
+        """
+        This method takes data, and modifies the Wikidata item. This works together with the data already provided via
+        the constructor or if the constructor is being instantiated with search_only=True. In the latter case, this
+        allows for checking the item data before deciding which new data should be written to the Wikidata item.
+        The actual write to Wikidata only happens on calling of the write() method. If data has been provided already
+        via the constructor, data provided via the update() method will be appended to these data.
+        :param data: A list of Wikidata statment items inheriting from WDBaseDataType
+        :type data: list
+        :param append_value: list with Wikidata property strings where the values should only be appended,
+            not overwritten.
+        :type: list
+        """
+        assert type(data) == list
+
+        if append_value:
+            assert type(append_value) == list
+            self.append_value.extend(append_value)
+
+        self.data.extend(data)
+        self.statements = copy.deepcopy(self.original_statments)
+        print(self.data)
+
+        if self.fast_run:
+            self.init_fastrun()
+
+        if self.require_write and self.fast_run:
+            self.init_data_load()
+            self.__construct_claim_json()
+            self.__check_integrity()
+        elif not self.fast_run:
+            self.__construct_claim_json()
+            self.__check_integrity()
 
     def get_wd_json_representation(self):
         """
@@ -724,6 +853,7 @@ class WDItemEngine(object):
         self.create_new_item = False
         self.wd_item_id = json_data['entity']['id']
         self.parse_wd_json(wd_json=json_data['entity'])
+        self.data = []
 
         return self.wd_item_id
 
@@ -845,6 +975,38 @@ class WDItemEngine(object):
             return {'error': 'HTTPError'}
 
         return merge_reply.json()
+
+    @staticmethod
+    def _init_ref_system():
+        db_query = '''
+        SELECT DISTINCT ?db ?wd_prop WHERE {
+            {?db wdt:P31 wd:Q2881060 . } UNION
+            {?db wdt:P31 wd:Q4117139 . } UNION
+            {?db wdt:P31 wd:Q8513 .} UNION
+            {?db wdt:P31 wd:Q324254 .}
+
+            OPTIONAL {
+              ?db wdt:P1687 ?wd_prop .
+            }
+        }
+        '''
+
+        for x in WDItemEngine.execute_sparql_query(db_query)['results']['bindings']:
+            db_qid = x['db']['value'].split('/')[-1]
+            if db_qid not in WDItemEngine.databases:
+                WDItemEngine.databases.update({db_qid: []})
+
+            if 'wd_prop' in x:
+                WDItemEngine.databases[db_qid].append(x['wd_prop']['value'].split('/')[-1])
+
+        pmid_query = '''
+        SELECT DISTINCT ?x WHERE {
+            ?x wdt:P698 [] .
+        }
+        '''
+
+        for x in WDItemEngine.execute_sparql_query(pmid_query)['results']['bindings']:
+            WDItemEngine.pmids.append(x['x']['value'].split('/')[-1])
 
 
 class JsonParser(object):
@@ -973,6 +1135,8 @@ class WDBaseDataType(object):
         self.rank = rank
         self.check_qualifier_equality = check_qualifier_equality
 
+        self._statement_ref_mode = 'KEEP_GOOD'
+
         if not references:
             self.references = list()
         if not self.qualifiers:
@@ -986,7 +1150,7 @@ class WDBaseDataType(object):
             self.prop_nr = 'P' + prop_nr
 
         # Flag to allow complete overwrite of existing references for a value
-        self.overwrite_references = False
+        self._overwrite_references = False
 
         # WD internal ID and hash are issued by the WD servers
         self.id = ''
@@ -1048,6 +1212,30 @@ class WDBaseDataType(object):
             return True
         else:
             return False
+
+    # DEPRECATED: the property overwrite_references will be deprecated ASAP and should not be used
+    @property
+    def overwrite_references(self):
+        return self._overwrite_references
+
+    @overwrite_references.setter
+    def overwrite_references(self, value):
+        assert(value is True or value is False)
+        print('DEPRECATED!!! Calls to overwrite_references should not be used')
+        self._overwrite_references = value
+
+    @property
+    def statement_ref_mode(self):
+        return self._statement_ref_mode
+
+    @statement_ref_mode.setter
+    def statement_ref_mode(self, value):
+        """Set the reference mode for a statement, always overrides the global reference state."""
+        valid_values = ['STRICT_KEEP', 'STRICT_KEEP_APPEND', 'STRICT_OVERWRITE', 'KEEP_GOOD']
+        if value not in valid_values:
+            raise ValueError('Not an allowed reference mode, allowed values {}'.format(' '.join(valid_values)))
+
+        self._statement_ref_mode = value
 
     def get_value(self):
         return self.value
@@ -1252,7 +1440,7 @@ class WDString(WDBaseDataType):
 
 class WDMath(WDBaseDataType):
     """
-    Implements the Wikidata data type 'math' for mathematical formular in TEX format
+    Implements the Wikidata data type 'math' for mathematical formula in TEX format
     """
     DTYPE = 'math'
 
@@ -1703,10 +1891,10 @@ class WDMonolingualText(WDBaseDataType):
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
-        value = jsn['datavalue']['value']
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, prop_nr=jsn['property'], snak_type=jsn['snaktype'])
 
+        value = jsn['datavalue']['value']
         return cls(value=value['text'], prop_nr=jsn['property'], language=value['language'])
 
 
@@ -1743,19 +1931,26 @@ class WDQuantity(WDBaseDataType):
         :type rank: str
         """
 
-        value = (value, unit, upper_bound, lower_bound)
+        v = (value, unit, upper_bound, lower_bound)
 
-        super(WDQuantity, self).__init__(value=value, snak_type=snak_type, data_type=self.DTYPE,
+        super(WDQuantity, self).__init__(value=v, snak_type=snak_type, data_type=self.DTYPE,
                                          is_reference=is_reference, is_qualifier=is_qualifier, references=references,
                                          qualifiers=qualifiers, rank=rank, prop_nr=prop_nr,
                                          check_qualifier_equality=check_qualifier_equality)
 
-        self.set_value(value)
+        self.set_value(v)
 
-    def set_value(self, value):
-        value, unit, upper_bound, lower_bound = value
+    def set_value(self, v):
+        value, unit, upper_bound, lower_bound = v
 
         if value is not None:
+            value = str('+{}'.format(value)) if not str(value).startswith('+') and float(value) > 0 else str(value)
+            unit = str(unit)
+            upper_bound = str('+{}'.format(upper_bound)) if not str(upper_bound).startswith('+')\
+                                                            and float(upper_bound) > 0 else str(upper_bound)
+            lower_bound = str('+{}'.format(lower_bound)) if not str(lower_bound).startswith('+') \
+                                                            and float(lower_bound) > 0 else str(lower_bound)
+
             # Integrity checks for value and bounds
             try:
                 for i in [value, upper_bound, lower_bound]:
@@ -1771,10 +1966,10 @@ class WDQuantity(WDBaseDataType):
 
         self.json_representation['datavalue'] = {
             'value': {
-                'amount': str(value),
-                'unit': str(unit),
-                'upperBound': str(upper_bound),
-                'lowerBound': str(lower_bound)
+                'amount': value,
+                'unit': unit,
+                'upperBound': upper_bound,
+                'lowerBound': lower_bound
             },
             'type': 'quantity'
         }
@@ -1784,11 +1979,11 @@ class WDQuantity(WDBaseDataType):
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
-        value = jsn['datavalue']['value']
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(value=None, upper_bound=None, lower_bound=None, prop_nr=jsn['property'],
                        snak_type=jsn['snaktype'])
 
+        value = jsn['datavalue']['value']
         return cls(value=value['amount'], prop_nr=jsn['property'], upper_bound=value['upperBound'],
                    lower_bound=value['lowerBound'], unit=value['unit'])
 
@@ -1907,11 +2102,11 @@ class WDGlobeCoordinate(WDBaseDataType):
     @classmethod
     @JsonParser
     def from_json(cls, jsn):
-        value = jsn['datavalue']['value']
         if jsn['snaktype'] == 'novalue' or jsn['snaktype'] == 'somevalue':
             return cls(latitude=None, longitude=None, precision=None, prop_nr=jsn['property'],
                        snak_type=jsn['snaktype'])
 
+        value = jsn['datavalue']['value']
         return cls(latitude=value['latitude'], longitude=value['longitude'], precision=value['precision'],
                    prop_nr=jsn['property'])
 

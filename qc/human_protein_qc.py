@@ -21,7 +21,7 @@ PREFIX reference: <http://www.wikidata.org/prop/reference/>
 SELECT DISTINCT ?uniprotId WHERE {
   ?protein wdt:P279 wd:Q8054 .
   ?protein wdt:P352 ?uniprotId .
-  ?protein wdt:P703 wd:Q5 .
+  ?protein wdt:P703 wd:Q15978631 .
   ?protein p:P702 ?encBy .
   ?encBy prov:wasDerivedFrom ?derivedFrom .
   ?derivedFrom reference:P248 wd:Q2629752  .

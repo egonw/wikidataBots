@@ -16,7 +16,7 @@ import argparse
 
 class ProteinBot(object):
     taxon_map = {
-        '9606': 'Q5',
+        '9606': 'Q15978631',
         '10090': 'Q83310'
     }
 

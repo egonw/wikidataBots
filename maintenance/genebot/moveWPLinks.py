@@ -47,7 +47,7 @@ human_genes_query = '''
     SELECT DISTINCT ?gene WHERE {
        ?gene wdt:P279 wd:Q7187 .
        ?gene p:P351 ?ncbigeneId .
-       ?gene wdt:P703 wd:Q5 .
+       ?gene wdt:P703 wd:Q15978631 .
     }
 '''
 sparql = SPARQLWrapper("https://query.wikidata.org/bigdata/namespace/wdq/sparql")

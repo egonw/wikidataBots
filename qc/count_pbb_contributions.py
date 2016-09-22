@@ -25,7 +25,7 @@ PREFIX reference: <http://www.wikidata.org/prop/reference/>
 SELECT DISTINCT ?uniprotId WHERE {
   ?protein wdt:P279 wd:Q8054 .
   ?protein wdt:P352 ?uniprotId .
-  ?protein wdt:P703 wd:Q5 .
+  ?protein wdt:P703 wd:Q15978631 .
   ?protein p:P702 ?encBy .
   ?encBy prov:wasDerivedFrom ?derivedFrom .
   ?derivedFrom reference:P248 wd:Q2629752  .
@@ -47,7 +47,7 @@ PREFIX reference: <http://www.wikidata.org/prop/reference/>
 SELECT ?uniprotId WHERE {
   ?protein wdt:P279 wd:Q8054 .
   ?protein wdt:P352 ?uniprotId .
-  ?protein wdt:P703 wd:Q5 .
+  ?protein wdt:P703 wd:Q15978631 .
   ?protein ?p ?encBy .
   ?encBy prov:wasDerivedFrom ?derivedFrom .
   ?derivedFrom reference:P248 wd:Q2629752  .
@@ -74,7 +74,7 @@ sparql.setQuery("""PREFIX wdt: <http://www.wikidata.org/prop/direct/>
     SELECT DISTINCT ?ncbigeneId WHERE {
     ?gene wdt:P279 wd:Q7187 .
     ?gene p:P351 ?ncbigeneId .
-    ?gene wdt:P703 wd:Q5 .
+    ?gene wdt:P703 wd:Q15978631 .
     ?ncbigeneId prov:wasDerivedFrom ?derivedFrom .
     ?derivedFrom reference:P143 wd:Q20641742 .
 }
