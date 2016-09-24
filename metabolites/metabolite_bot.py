@@ -217,8 +217,8 @@ for metabolite in wp_metabolites:
             qid, server="www.wikidata.org",
             data=([],data2add)[reallyAddData],
             domain="metabolites",
-            fast_run=reallyAddData, fast_run_base_filter =
-              {'P31': 'Q11173'}
+            global_ref_mode='KEEP_GOOD',
+            keep_good_ref_statements=[{'P703':'Q15978631', 'P813': None}]
           )
           output = wdPage.get_wd_json_representation()
           pprint.pprint(output)
