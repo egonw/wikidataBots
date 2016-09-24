@@ -32,7 +32,7 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 from time import gmtime, strftime
 import copy
 import pprint
-import urllib
+import urllib.parse
 
 # Use the PubChem API to look up the SMILES, InChI, and InChIKey using the
 # PubChem CID provided by WikiPathways
@@ -73,17 +73,17 @@ def getMetabolitesFromWP():
     # source ref to WikiPathways
     def wp_reference(wpid, wpurl):
         # P248 = Stated in: Q7999828 = Wikipathways
-        refStatedIn = PBB_Core.WDItemID(value="Q7999828", prop_nr=u'P248', is_reference=True)
+        refStatedIn = PBB_Core.WDItemID(value="Q7999828", prop_nr='P248', is_reference=True)
         refStatedIn.overwrite_references = True
         # P2410 = WikiPathways ID
-        refWpId = PBB_Core.WDString(value=u''+str(wpid[0]), prop_nr=u'P2410', is_reference=True)
+        refWpId = PBB_Core.WDString(value=''+str(wpid[0]), prop_nr='P2410', is_reference=True)
         refWpId.overwrite_references = True
         # P813 = retrieved
-        timeStringNow = u''+strftime("+%Y-%m-%dT00:00:00Z", gmtime())
-        refRetrieved = PBB_Core.WDTime(timeStringNow, prop_nr=u'P813', is_reference=True, calendarmodel=u'http://www.wikidata.org/entity/Q1985727')
+        timeStringNow = ''+strftime("+%Y-%m-%dT00:00:00Z", gmtime())
+        refRetrieved = PBB_Core.WDTime(timeStringNow, prop_nr='P813', is_reference=True, calendarmodel='http://www.wikidata.org/entity/Q1985727')
         refRetrieved.overwrite_references = True
         # P854 = reference URL
-        refURL = PBB_Core.WDUrl(value=u"http://identifiers.org/wikipathways/" + str(wpurl), prop_nr=u'P854', is_reference=True)
+        refURL = PBB_Core.WDUrl(value="http://identifiers.org/wikipathways/" + str(wpurl), prop_nr='P854', is_reference=True)
         refURL.overwrite_references = True
         wp_reference = [refStatedIn, refWpId, refRetrieved, refURL]
         return wp_reference
@@ -91,18 +91,18 @@ def getMetabolitesFromWP():
     # source ref to PubChem
     def pc_reference(pcid):
         # P248 = Stated in: Q278487 = PubChem
-        refStatedIn = PBB_Core.WDItemID(value="Q278487", prop_nr=u'P248', is_reference=True)
+        refStatedIn = PBB_Core.WDItemID(value="Q278487", prop_nr='P248', is_reference=True)
         refStatedIn.overwrite_references = True
         # P662 = PubChem ID (CID)
-        refPcId = PBB_Core.WDExternalID(value=u''+str(pcid), prop_nr=u'P662', is_reference=True)
+        refPcId = PBB_Core.WDExternalID(value=''+str(pcid), prop_nr='P662', is_reference=True)
         refPcId.overwrite_references = True
         # P813 = retrieved
-        timeStringNow = u''+strftime("+%Y-%m-%dT00:00:00Z", gmtime())
-        refRetrieved = PBB_Core.WDTime(timeStringNow, prop_nr=u'P813', is_reference=True, calendarmodel=u'http://www.wikidata.org/entity/Q1985727')
+        timeStringNow = ''+strftime("+%Y-%m-%dT00:00:00Z", gmtime())
+        refRetrieved = PBB_Core.WDTime(timeStringNow, prop_nr='P813', is_reference=True, calendarmodel='http://www.wikidata.org/entity/Q1985727')
         refRetrieved.overwrite_references = True
         # P854 = reference URL
         url = "https://pubchem.ncbi.nlm.nih.gov/rest/pug/compound/cid/{}/property/InChI,InChIKey,CanonicalSMILES/JSON".format(str(pcid))
-        refURL = PBB_Core.WDUrl(value=u'' + url, prop_nr=u'P854', is_reference=True)
+        refURL = PBB_Core.WDUrl(value='' + url, prop_nr='P854', is_reference=True)
         refURL.overwrite_references = True
         pc_reference = [refStatedIn, refPcId, refRetrieved, refURL]
         return pc_reference
@@ -126,7 +126,7 @@ WHERE {
 
     x = requests.get(
       "http://sparql.wikipathways.org/?default-graph-uri=&query=" +
-      urllib.quote(wpSparql) +
+      urllib.parse.quote(wpSparql) +
       "&format=application%2Fsparql-results%2Bjson&timeout=0&debug=on"
     )
     res = x.json()
@@ -146,13 +146,14 @@ WHERE {
         compound["pubchemUri"].append(result["identifierUri"]["value"])
         if "pathway" not in compound .keys():
             compound["pathway"] = []
-        compound["pathway"].append(result["pathways"]["value"].replace("http://identifiers.org/wikipathways/",  ""))
+        pathways = result["pathways"]["value"].split(",")[0].strip()
+        compound["pathway"].append(pathways.replace("http://identifiers.org/wikipathways/",  ""))
         if "pw_id" not in compound .keys():
             compound["pw_id"] = []
-        compound["pw_id"].append(result["pathways"]["value"].replace("http://identifiers.org/wikipathways/",  "").split("_")[0])
+        compound["pw_id"].append(pathways.replace("http://identifiers.org/wikipathways/",  "").split("_")[0])
         if "revision" not in compound .keys():
             compound ["revision"] = []
-        compound["revision"].append(result["pathways"]["value"].replace("http://identifiers.org/wikipathways/",  "").split("_")[1])
+        compound["revision"].append(pathways.replace("http://identifiers.org/wikipathways/",  "").split("_")[1])
 
         compound ["wp_reference"] = wp_reference(compound ["pw_id"], compound["pathway"][0])
         pccid = str(compound["pubchem"][0]).replace("http://identifiers.org/pubchem.compound/", "")
@@ -167,7 +168,7 @@ wp_metabolites = getMetabolitesFromWP()
 pccid_mappings = get_identifier_wikidata_map("P662")
 inchikey_mappings = get_identifier_wikidata_map("P235")
 itemsEdited = 0
-maxItems = 1
+maxItems = 5
 for metabolite in wp_metabolites:
     if itemsEdited >= maxItems:
       print("Done after editing #items: " + str(itemsEdited))
@@ -193,9 +194,9 @@ for metabolite in wp_metabolites:
       if inWikidata:
         prep = dict()
         # P703 = found in taxon, Q15978631 = Homo sapiens
-        prep[u"P703"] = [
+        prep["P703"] = [
           PBB_Core.WDItemID(
-            value='Q15978631', prop_nr=u'P703', rank=u'normal',
+            value='Q15978631', prop_nr='P703', rank='normal',
             references=[copy.deepcopy(metabolite["wp_reference"])]
           )
         ]
@@ -215,9 +216,9 @@ for metabolite in wp_metabolites:
           wdPage = PBB_Core.WDItemEngine(
             qid, server="www.wikidata.org",
             data=([],data2add)[reallyAddData],
-            domain="drugs",
+            domain="metabolites",
             fast_run=reallyAddData, fast_run_base_filter =
-              {u'P703': u'Q15978631', u'P813': '', u'P854': ''}
+              {'P31': 'Q11173'}
           )
           output = wdPage.get_wd_json_representation()
           pprint.pprint(output)
@@ -227,49 +228,49 @@ for metabolite in wp_metabolites:
         print("No Wikidata entry found for PubChem CID " + pccid + " (but creating one)")
         prep = dict()
         # P31 = instance of P31, Q407595 = metabolite, Q11173 = chemical compound
-        prep[u"P31"] = [
+        prep["P31"] = [
           PBB_Core.WDItemID(
-            value='Q11173', prop_nr=u'P31', rank=u'normal',
+            value='Q11173', prop_nr='P31', rank='normal',
             references=[copy.deepcopy(metabolite["wp_reference"])]
           )
         ]
         # P703 = found in taxon, Q15978631 = Homo sapiens
-        prep[u"P703"] = [
+        prep["P703"] = [
           PBB_Core.WDItemID(
-            value='Q15978631', prop_nr=u'P703', rank=u'normal',
+            value='Q15978631', prop_nr='P703', rank='normal',
             references=[copy.deepcopy(metabolite["wp_reference"])]
           )
         ]
         # PubChem ID (CID) P662
-        prep[u"P662"] = [
+        prep["P662"] = [
           PBB_Core.WDExternalID(
-            value=u''+pccid,
-            prop_nr=u'P662',
+            value=''+pccid,
+            prop_nr='P662',
             references=[copy.deepcopy(metabolite["wp_reference"])]
           )
         ]
         # get some more details from PubChem
         # output Canonical SMILES P233
         if results["smiles"]:
-          prep[u"P233"] = [
+          prep["P233"] = [
             PBB_Core.WDString(
-              value=results["smiles"], prop_nr=u'P233',
+              value=results["smiles"], prop_nr='P233',
               references=[copy.deepcopy(metabolite["pubchem_reference"])]
             )
           ]
         # InChI P234
         if results["inchi"]:
-          prep[u"P234"] = [
+          prep["P234"] = [
             PBB_Core.WDString(
-              value=results["inchi"].replace("InChI=",""), prop_nr=u'P234',
+              value=results["inchi"].replace("InChI=",""), prop_nr='P234',
               references=[copy.deepcopy(metabolite["pubchem_reference"])]
             )
           ]
         # InChIKey P235
         if results["inchikey"]:
-          prep[u"P235"] = [
+          prep["P235"] = [
             PBB_Core.WDString(
-              value=results["inchikey"], prop_nr=u'P235',
+              value=results["inchikey"], prop_nr='P235',
               references=[copy.deepcopy(metabolite["pubchem_reference"])]
             )
           ]
@@ -282,11 +283,11 @@ for metabolite in wp_metabolites:
         wdPage = PBB_Core.WDItemEngine(
           item_name=metabolite["metabolite_label"][0], server="www.wikidata.org",
           data=([],data2add)[os.environ['wikidataForReal'] == "true"],
-          domain="drugs"
+          domain="metabolites"
         )
         wdPage.set_label(metabolite["metabolite_label"][0])
         wdPage.set_description("chemical compound found in a biologcal pathway")
         output = wdPage.get_wd_json_representation()
-        pprint.pprint(output)
+        #pprint.pprint(output)
         #wdPage.write(logincreds)
-        itemsEdited = itemsEdited + 1
+        #itemsEdited = itemsEdited + 1
