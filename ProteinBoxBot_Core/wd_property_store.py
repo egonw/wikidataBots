@@ -30,6 +30,8 @@ domain_incompatibilities = {
 valid_instances = {
     'metabolites': [
         'Q11173',  # chemical compound (only one single, pure chemical compound)
+        'Q36496',  # ion
+        'Q407595'  # metabolite
     ],
     'drugs': [
         'Q11173',  # chemical compound (only one single, pure chemical compound)
@@ -75,7 +77,7 @@ wd_properties = {
     'P31': {
         'datatype': 'item',
         'name': 'instance of',
-        'domain': ['generic', 'genomes', 'drugs'],
+        'domain': ['generic', 'genomes', 'drugs', 'metabolites'],
         'core_id': 'False'
     },
     'P636': {
